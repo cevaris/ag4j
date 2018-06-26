@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '6.0-alpha-2'
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'

@@ -1,41 +1,54 @@
 package com.cevaris.ag4j;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 
 public class Main {
   public static final Logger logger = LoggerFactory.getLogger(Main.class);
 
   private final static String WAT = "ERR: What do you want to search for?";
+  private final static String FILE_NOT_FOUND =
+      "ERR: Error stat()ing: %s\n" +
+          "ERR: Error opening directory %s: No such file or directory";
 
-  public static void main(String[] args) {
-    OptionParser parser = new OptionParser("GD");
-    OptionSet opts = parser.parse(args);
+
+  public static void main(String[] args) throws ParseException {
+    DefaultParser parser = new DefaultParser();
+    Options opts = new Options();
+    opts.addOption("G", true, "filter by path");
+    opts.addOption("D", "debug");
+
+    CommandLine cmdLine = parser.parse(opts, args);
 
     if (args.length == 0) {
       System.out.println(WAT);
       System.exit(1);
     }
 
-    if (opts.has("D")) {
-      System.out.println(opts.nonOptionArguments());
+    if (cmdLine.hasOption("D")) {
+      System.out.println(Arrays.toString(cmdLine.getArgs()));
       System.out.println(String.join(",", args));
     }
 
-    List<File> files = collectFiles(args);
+    String[] nonOptions = cmdLine.getArgs();
+    String pattern = nonOptions[0];
+
+    List<File> files = collectFiles(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
     if (files.isEmpty()) {
-      System.out.println(opts.nonOptionArguments().get(0) + " " + System.getProperty("user.dir"));
+      System.out.println(nonOptions[0] + " " + System.getProperty("user.dir"));
       System.exit(0);
     }
 
-    System.out.println(opts.nonOptionArguments().get(0) + " " + String.join(", ", files.toString()));
+    System.out.println(nonOptions[0] + " " + String.join(", ", files.toString()));
     System.exit(0);
   }
 
@@ -45,6 +58,8 @@ public class Main {
       File file = new File(arg);
       if (file.exists()) {
         files.add(file);
+      } else {
+        System.out.println(String.format(FILE_NOT_FOUND, arg, arg));
       }
     }
     return files;
