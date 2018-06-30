@@ -44,12 +44,16 @@ public class Main {
 
     List<File> files = collectFiles(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
     if (files.isEmpty()) {
-      System.out.println(nonOptions[0] + " " + System.getProperty("user.dir"));
-      System.exit(0);
+      System.out.println(pattern + " " + System.getProperty("user.dir"));
+    } else {
+      System.out.println(pattern + " " + String.join(", ", files.toString()));
     }
-
-    System.out.println(nonOptions[0] + " " + String.join(", ", files.toString()));
+    
     System.exit(0);
+  }
+
+  private static String fileNotFound(String name) {
+    return String.format(FILE_NOT_FOUND, name, name);
   }
 
   private static List<File> collectFiles(String[] args) {
@@ -59,7 +63,7 @@ public class Main {
       if (file.exists()) {
         files.add(file);
       } else {
-        System.out.println(String.format(FILE_NOT_FOUND, arg, arg));
+        System.out.println(fileNotFound(arg));
       }
     }
     return files;
