@@ -36,13 +36,8 @@ public class Main {
     CommandLine cmdLine = parser.parse(opts, args);
 
     if (args.length == 0) {
-      System.out.println(WAT);
+      logger.error(WAT);
       System.exit(1);
-    }
-
-    if (cmdLine.hasOption("D")) {
-      System.out.println(Arrays.toString(cmdLine.getArgs()));
-      System.out.println(String.join(",", args));
     }
 
     String[] nonOptions = cmdLine.getArgs();
@@ -52,10 +47,8 @@ public class Main {
     List<File> files = collectFiles(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
     Path[] sources = new Path[files.size() + 1];
     if (files.isEmpty()) {
-      System.out.println(pattern + " " + System.getProperty("user.dir"));
       sources[0] = pathFinder.getPath(System.getProperty("user.dir")).toAbsolutePath();
     } else {
-      System.out.println(pattern + " " + String.join(", ", files.toString()));
       for (Integer i = 0; i < files.size(); i++) {
         sources[i] = pathFinder.getPath(files.get(i).getAbsolutePath());
       }

@@ -46,6 +46,17 @@ class FileWalker extends SimpleFileVisitor<Path> {
     FileVisitResult result = super.preVisitDirectory(dir, attrs);
     if (attrs.isDirectory()) {
       logger.debug(String.format("DEBUG: looking for ignore files in %s", dir));
+      for (String name : Constants.IGNORE_FILE_NAMES) {
+        if (Files.exists(dir.resolve(name))) {
+          // parse ignore file
+        } else {
+          logger.debug(String.format("Skipping ignore file %s: not readable", name));
+        }
+      }
+
+      if (dir.getFileName().endsWith(".git") && Files.exists(dir.resolve("info/exclude"))) {
+        // include info/exclude ignore patterns too
+      }
     }
     return result;
   }
