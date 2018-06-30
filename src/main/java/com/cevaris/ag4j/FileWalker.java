@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.cevaris.ag4j.logger.Logger;
+import com.cevaris.ag4j.logger.LoggerFactory;
+
 class FileWalker extends SimpleFileVisitor<Path> {
   private static final Logger logger = LoggerFactory.get();
 
