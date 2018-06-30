@@ -14,16 +14,14 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Main {
-  public static final Logger logger = LoggerFactory.getLogger(Main.class);
+  private static final Logger logger = LoggerFactory.get();
 
-  private final static String WAT = "ERR: What do you want to search for?";
+  private final static String WAT = "What do you want to search for?";
   private final static String FILE_NOT_FOUND =
-      "ERR: Error stat()ing: %s\n" +
-          "ERR: Error opening directory %s: No such file or directory";
+      "Error stat()ing: %s\n" +
+          "Error opening directory %s: No such file or directory";
 
 
   public static void main(String[] args) throws ParseException {
@@ -84,7 +82,7 @@ public class Main {
       if (file.exists()) {
         files.add(file);
       } else {
-        System.out.println(fileNotFound(arg));
+        logger.error(fileNotFound(arg));
       }
     }
     return files;

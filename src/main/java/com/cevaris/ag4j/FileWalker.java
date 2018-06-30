@@ -13,11 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 class FileWalker extends SimpleFileVisitor<Path> {
-  private Logger logger = LoggerFactory.getLogger(FileWalker.class);
+  private static final Logger logger = LoggerFactory.get();
 
   private Map<Path, Set<String>> mkignorePatters() {
     Map<Path, Set<String>> tmp = new HashMap<>();
