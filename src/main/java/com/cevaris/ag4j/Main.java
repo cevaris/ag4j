@@ -1,6 +1,11 @@
 package com.cevaris.ag4j;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,14 +46,30 @@ public class Main {
 
     String[] nonOptions = cmdLine.getArgs();
     String pattern = nonOptions[0];
+    FileSystem pathFinder = FileSystems.getDefault();
 
     List<File> files = collectFiles(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
+    Path[] sources = new Path[files.size() + 1];
     if (files.isEmpty()) {
       System.out.println(pattern + " " + System.getProperty("user.dir"));
+      sources[0] = pathFinder.getPath(System.getProperty("user.dir")).toAbsolutePath();
     } else {
       System.out.println(pattern + " " + String.join(", ", files.toString()));
+      for (Integer i = 0; i < files.size(); i++) {
+        sources[i] = pathFinder.getPath(files.get(i).getAbsolutePath());
+      }
     }
-    
+
+    FileWalker walker = new FileWalker();
+    for (Path p : sources) {
+      try {
+        logger.debug(String.format("DEBUG: walking %s", p));
+        Files.walkFileTree(p, walker);
+      } catch (IOException e) {
+        // should not get here as we already validated the files
+      }
+    }
+
     System.exit(0);
   }
 
