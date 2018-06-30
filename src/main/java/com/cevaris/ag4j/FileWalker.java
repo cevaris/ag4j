@@ -19,12 +19,6 @@ import org.slf4j.LoggerFactory;
 class FileWalker extends SimpleFileVisitor<Path> {
   private Logger logger = LoggerFactory.getLogger(FileWalker.class);
 
-  private final Map<Path, Set<String>> ignorePatterns;
-
-  FileWalker() {
-    this.ignorePatterns = mkignorePatters();
-  }
-
   private Map<Path, Set<String>> mkignorePatters() {
     Map<Path, Set<String>> tmp = new HashMap<>();
 
@@ -48,11 +42,25 @@ class FileWalker extends SimpleFileVisitor<Path> {
   }
 
   @Override
+  public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+    FileVisitResult result = super.preVisitDirectory(dir, attrs);
+    if (attrs.isDirectory()) {
+      logger.debug(String.format("DEBUG: looking for ignore files in %s", dir));
+    }
+    return result;
+  }
+
+  @Override
+  public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+    FileVisitResult result = super.visitFileFailed(file, exc);
+    logger.error(String.format("ERR: %s", exc));
+    return result;
+  }
+
+  @Override
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
     FileVisitResult result = super.visitFile(file, attrs);
-    if (attrs.isDirectory()) {
-      logger.debug(String.format("DEBUG: looking for ignore files in %s", file));
-    } else {
+    if (!attrs.isDirectory()) {
       logger.debug(String.format("DEBUG: attempt pattern match on %s", file));
     }
     return result;
