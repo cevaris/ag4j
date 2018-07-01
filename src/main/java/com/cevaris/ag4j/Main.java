@@ -10,37 +10,26 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.cevaris.ag4j.cli.ApacheAppArgs;
+import com.cevaris.ag4j.cli.AppArgs;
 import com.cevaris.ag4j.logger.Logger;
 import com.cevaris.ag4j.logger.LoggerFactory;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
 public class Main {
-  private static final Logger logger = LoggerFactory.get();
+  private static Logger logger = LoggerFactory.get();
 
   private final static String WAT = "What do you want to search for?";
   private final static String FILE_NOT_FOUND =
       "Error stat()ing: %s\n" +
           "Error opening directory %s: No such file or directory";
 
-
-  public static void main(String[] args) throws ParseException {
-    DefaultParser parser = new DefaultParser();
-    Options opts = new Options();
-    opts.addOption("G", true, "filter by path");
-    opts.addOption("D", "debug");
-
-    CommandLine cmdLine = parser.parse(opts, args);
-
-    if (args.length == 0) {
+  private void start(AppArgs args) {
+    if (args.getArgs().length == 0) {
       logger.error(WAT);
       System.exit(1);
     }
 
-    String[] nonOptions = cmdLine.getArgs();
+    String[] nonOptions = args.getArgs();
     String pattern = nonOptions[0];
     FileSystem pathFinder = FileSystems.getDefault();
 
@@ -65,6 +54,21 @@ public class Main {
     }
 
     System.exit(0);
+  }
+
+  public static void main(String[] args) {
+    AppArgs appArgs = new ApacheAppArgs();
+    appArgs.parse(args);
+
+    if (appArgs.pagerCommand().isPresent()) {
+      logger = LoggerFactory.get(appArgs.pagerCommand().get());
+    } else {
+      logger = LoggerFactory.get();
+    }
+
+    new Main().start(appArgs);
+
+    LoggerFactory.close();
   }
 
   private static String fileNotFound(String name) {

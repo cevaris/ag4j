@@ -1,7 +1,5 @@
 package com.cevaris.ag4j.logger;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.slf4j.LoggerFactory;
 
 /**
@@ -21,5 +19,4 @@ public class LoggerImpl implements Logger {
   public void info(String message) {
     logger.info(message);
   }
-
 }
