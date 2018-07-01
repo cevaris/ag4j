@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -17,7 +18,15 @@ public class ApacheAppArgs implements AppArgs {
     Options opts = new Options();
     opts.addOption("G", true, "filter by path");
     opts.addOption("D", "debug");
-    opts.addOption("", "pager", true, "pipes to less");
+
+    Option pager = Option.builder(null)
+        .longOpt("pager")
+        .hasArg()
+        .desc("pipe to user paging cli app")
+        .numberOfArgs(Option.UNLIMITED_VALUES)
+        .valueSeparator()
+        .build();
+    opts.addOption(pager);
 
     try {
       cmdLine = parser.parse(opts, args);
