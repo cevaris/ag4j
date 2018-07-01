@@ -16,8 +16,9 @@ import com.cevaris.ag4j.logger.Logger;
 import com.cevaris.ag4j.logger.LoggerFactory;
 
 public class Main {
-  private static Logger logger = LoggerFactory.get();
+  private static final Logger logger = LoggerFactory.get();
 
+  private final static String WORKING_DIR = System.getProperty("user.dir");
   private final static String WAT = "What do you want to search for?";
   private final static String FILE_NOT_FOUND =
       "Error stat()ing: %s\n" +
@@ -30,13 +31,12 @@ public class Main {
     }
 
     String[] nonOptions = args.getArgs();
-    String pattern = nonOptions[0];
     FileSystem pathFinder = FileSystems.getDefault();
 
-    List<File> files = collectFiles(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
+    List<File> files = validateFileSources(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
     Path[] sources = new Path[files.size() + 1];
     if (files.isEmpty()) {
-      sources[0] = pathFinder.getPath(System.getProperty("user.dir")).toAbsolutePath();
+      sources[0] = pathFinder.getPath(WORKING_DIR).toAbsolutePath();
     } else {
       for (Integer i = 0; i < files.size(); i++) {
         sources[i] = pathFinder.getPath(files.get(i).getAbsolutePath());
@@ -44,10 +44,10 @@ public class Main {
     }
 
     FileWalker walker = new FileWalker();
-    for (Path p : sources) {
+    for (Path sourcPath : sources) {
       try {
-        logger.debug(String.format("DEBUG: walking %s", p));
-        Files.walkFileTree(p, walker);
+        logger.debug(String.format("DEBUG: walking %s", sourcPath));
+        Files.walkFileTree(sourcPath, walker);
       } catch (IOException e) {
         // should not get here as we already validated the files
       }
@@ -60,22 +60,14 @@ public class Main {
     AppArgs appArgs = new ApacheAppArgs();
     appArgs.parse(args);
 
-    if (appArgs.pagerCommand().isPresent()) {
-      logger = LoggerFactory.get(appArgs.pagerCommand().get());
-    } else {
-      logger = LoggerFactory.get();
-    }
-
     new Main().start(appArgs);
-
-    LoggerFactory.close();
   }
 
   private static String fileNotFound(String name) {
     return String.format(FILE_NOT_FOUND, name, name);
   }
 
-  private static List<File> collectFiles(String[] args) {
+  private static List<File> validateFileSources(String[] args) {
     List<File> files = new LinkedList<>();
     for (String arg : args) {
       File file = new File(arg);
