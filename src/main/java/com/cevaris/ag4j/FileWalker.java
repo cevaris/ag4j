@@ -32,7 +32,7 @@ class FileWalker extends SimpleFileVisitor<Path> {
         tmp.put(gitIgnoreGlobalPath, new HashSet<>(patterns));
       } catch (IOException e) {
         logger.debug(String.format(
-            "DEBUG: Skipping ignore file %s: not readable",
+            "Skipping ignore file %s: not readable",
             gitIgnoreGlobalFile.getPath()
         ));
       }
@@ -45,12 +45,13 @@ class FileWalker extends SimpleFileVisitor<Path> {
   public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
     FileVisitResult result = super.preVisitDirectory(dir, attrs);
     if (attrs.isDirectory()) {
-      logger.debug(String.format("DEBUG: looking for ignore files in %s", dir));
+      logger.debug(String.format("looking for ignore files in %s", dir));
       for (String name : Constants.IGNORE_FILE_NAMES) {
-        if (Files.exists(dir.resolve(name))) {
+        Path ignoreFilePath = dir.resolve(name);
+        if (Files.exists(ignoreFilePath)) {
           // parse ignore file
         } else {
-          logger.debug(String.format("Skipping ignore file %s: not readable", name));
+          logger.debug(String.format("Skipping ignore file %s: not readable", ignoreFilePath));
         }
       }
 
@@ -64,7 +65,7 @@ class FileWalker extends SimpleFileVisitor<Path> {
   @Override
   public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
     FileVisitResult result = super.visitFileFailed(file, exc);
-    logger.error(String.format("ERR: %s", exc));
+    logger.error(String.format("%s", exc));
     return result;
   }
 
@@ -72,7 +73,7 @@ class FileWalker extends SimpleFileVisitor<Path> {
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
     FileVisitResult result = super.visitFile(file, attrs);
     if (!attrs.isDirectory()) {
-      logger.debug(String.format("DEBUG: attempt pattern match on %s", file));
+      logger.debug(String.format("attempt pattern match on %s", file));
     }
     return result;
   }

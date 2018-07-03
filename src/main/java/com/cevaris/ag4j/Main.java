@@ -6,8 +6,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.cevaris.ag4j.cli.ApacheAppArgs;
@@ -33,20 +33,15 @@ public class Main {
     String[] nonOptions = args.getArgs();
     FileSystem pathFinder = FileSystems.getDefault();
 
-    List<File> files = validateFileSources(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
-    Path[] sources = new Path[files.size() + 1];
-    if (files.isEmpty()) {
-      sources[0] = pathFinder.getPath(WORKING_DIR).toAbsolutePath();
-    } else {
-      for (Integer i = 0; i < files.size(); i++) {
-        sources[i] = pathFinder.getPath(files.get(i).getAbsolutePath());
-      }
+    List<Path> sourcePaths = validateFileSources(Arrays.copyOfRange(nonOptions, 1, nonOptions.length));
+    if (sourcePaths.isEmpty()) {
+      sourcePaths.add(pathFinder.getPath(WORKING_DIR).toAbsolutePath());
     }
 
     FileWalker walker = new FileWalker();
-    for (Path sourcPath : sources) {
+    for (Path sourcPath : sourcePaths) {
       try {
-        logger.debug(String.format("DEBUG: walking %s", sourcPath));
+        logger.debug(String.format("walking %s", sourcPath));
         Files.walkFileTree(sourcPath, walker);
       } catch (IOException e) {
         // should not get here as we already validated the files
@@ -55,7 +50,6 @@ public class Main {
 
     System.exit(0);
   }
-
   public static void main(String[] args) {
     AppArgs appArgs = new ApacheAppArgs();
     appArgs.parse(args);
@@ -67,16 +61,16 @@ public class Main {
     return String.format(FILE_NOT_FOUND, name, name);
   }
 
-  private static List<File> validateFileSources(String[] args) {
-    List<File> files = new LinkedList<>();
+  private static List<Path> validateFileSources(String[] args) {
+    List<Path> sourcePaths = new ArrayList<>();
     for (String arg : args) {
       File file = new File(arg);
       if (file.exists()) {
-        files.add(file);
+        sourcePaths.add(file.toPath().toAbsolutePath());
       } else {
         logger.error(fileNotFound(arg));
       }
     }
-    return files;
+    return sourcePaths;
   }
 }
