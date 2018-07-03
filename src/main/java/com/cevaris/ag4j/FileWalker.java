@@ -19,6 +19,8 @@ import com.cevaris.ag4j.logger.LoggerFactory;
 class FileWalker extends SimpleFileVisitor<Path> {
   private static final Logger logger = LoggerFactory.get();
 
+  private final Map<Path, Set<String>> ignorePatterns = new HashMap<>();
+
   private Map<Path, Set<String>> mkignorePatters() {
     Map<Path, Set<String>> tmp = new HashMap<>();
 
@@ -44,14 +46,24 @@ class FileWalker extends SimpleFileVisitor<Path> {
   @Override
   public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
     FileVisitResult result = super.preVisitDirectory(dir, attrs);
-    if (attrs.isDirectory()) {
+    if (Constants.SKIP_PATH_NAMES.contains(dir.getFileName().toString())) {
+      logger.debug(String.format("skipping %s", dir));
+      result = FileVisitResult.SKIP_SUBTREE;
+    } else if (attrs.isDirectory()) {
       logger.debug(String.format("looking for ignore files in %s", dir));
-      for (String name : Constants.IGNORE_FILE_NAMES) {
+      for (String name : Constants.IGNORE_PATH_NAMES) {
         Path ignoreFilePath = dir.resolve(name);
         if (Files.exists(ignoreFilePath)) {
           // parse ignore file
+          logger.debug(String.format("parsing ignore file %s", ignoreFilePath));
+          Set<String> patterns = IgnoreUtils.parsePath(ignoreFilePath);
+          if (!patterns.isEmpty()) {
+            ignorePatterns.put(ignoreFilePath.getParent(), patterns);
+            logger.debug(String.format("found patterns: %s", String.join(", ", patterns)));
+          }
+
         } else {
-          logger.debug(String.format("Skipping ignore file %s: not readable", ignoreFilePath));
+          logger.debug(String.format("skipping ignore file %s: not readable", ignoreFilePath));
         }
       }
 
@@ -59,6 +71,7 @@ class FileWalker extends SimpleFileVisitor<Path> {
         // include info/exclude ignore patterns too
       }
     }
+
     return result;
   }
 
