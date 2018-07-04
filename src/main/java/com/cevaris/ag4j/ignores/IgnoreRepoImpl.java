@@ -15,17 +15,21 @@ public class IgnoreRepoImpl implements IgnoreRepo {
   private final Map<Path, Set<String>> ignoredPathMap = new HashMap<>();
 
   // TODO: better rootPath path builder
-  static final Path rootPath =
-      FileSystems.getDefault().getRootDirectories().iterator().next().getRoot();
+  private static final Path rootPath =
+      FileSystems
+          .getDefault()
+          .getRootDirectories()
+          .iterator()
+          .next()
+          .getRoot();
 
   @Override
   public void add(Path parent, List<String> patterns) {
     if (patterns.isEmpty()) {
-      // to limit memory, we should only store ignore data with directories that have a ignore file.
+      // to limit memory, we should only store ignore patterns with directories that have an ignore
+      // file.
       return;
     }
-
-    // add all grandparent paths ignore patterns to current ignore pattern
 
     List<String> parentPatterns = new ArrayList<>();
 
@@ -39,6 +43,7 @@ public class IgnoreRepoImpl implements IgnoreRepo {
       }
     }
 
+    // add current dir patterns
     patterns.addAll(parentPatterns);
     ignoredPathMap.put(parent, new HashSet<>(patterns));
     return;
@@ -50,7 +55,7 @@ public class IgnoreRepoImpl implements IgnoreRepo {
   }
 
   // visible for testing
-  public Set<String> getPatterns(Path path) {
+  Set<String> getPatterns(Path path) {
     return Collections.unmodifiableSet(ignoredPathMap.get(path));
   }
 }
