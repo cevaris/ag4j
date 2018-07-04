@@ -1,6 +1,5 @@
 package com.cevaris.ag4j.ignores;
 
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,17 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.cevaris.ag4j.Constants;
+
 public class IgnoreRepoImpl implements IgnoreRepo {
   private final Map<Path, Set<String>> ignoredPathMap = new HashMap<>();
-
-  // TODO: better rootPath path builder
-  private static final Path rootPath =
-      FileSystems
-          .getDefault()
-          .getRootDirectories()
-          .iterator()
-          .next()
-          .getRoot();
 
   @Override
   public void add(Path parent, List<String> patterns) {
@@ -34,7 +26,7 @@ public class IgnoreRepoImpl implements IgnoreRepo {
     List<String> parentPatterns = new ArrayList<>();
 
     Iterator<Path> iter = parent.iterator();
-    Path curr = rootPath; // initialize with rootPath
+    Path curr = Constants.ROOT_PATH; // initialize with rootPath
     while (iter.hasNext()) {
       curr = curr.resolve(iter.next());
       Set<String> candidatePatterns = ignoredPathMap.get(curr);
