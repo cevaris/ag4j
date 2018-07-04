@@ -21,7 +21,23 @@ public class PatternParserTest {
   }
 
   @Test
-  public void testSimpleSubtreeSiblings() {
+  public void testSingleGlob() {
+    PatternParser parser = new PatternParser();
+    Set<ParsedPattern> patterns = parser.parse("*.log");
+    List<Tuple2<String, Boolean>> shouldMatch = Arrays.asList(
+        Tuple2.tuple("/debug.log", true),
+        Tuple2.tuple("/foo.log", true),
+        Tuple2.tuple("/logs/debug.log", false)
+    );
+
+    for (Tuple2<String, Boolean> example : shouldMatch) {
+      boolean actual = testMatch(patterns, example.l());
+      Assert.assertEquals(String.format("%s", example.l()), example.r(), actual);
+    }
+  }
+
+  @Test
+  public void testDoubleGlob() {
     PatternParser parser = new PatternParser();
     Set<ParsedPattern> patterns = parser.parse("**/logs");
     List<Tuple2<String, Boolean>> shouldMatch = Arrays.asList(
@@ -38,4 +54,22 @@ public class PatternParserTest {
       Assert.assertEquals(String.format("%s", example.l()), example.r(), actual);
     }
   }
+
+
+  @Test
+  public void testDoubleGlobFile() {
+    PatternParser parser = new PatternParser();
+    Set<ParsedPattern> patterns = parser.parse("**/logs/debug.log");
+    List<Tuple2<String, Boolean>> shouldMatch = Arrays.asList(
+        Tuple2.tuple("/logs/debug.log", true),
+        Tuple2.tuple("/build/logs/debug.log", true),
+        Tuple2.tuple("/logs/build/debug.log", false)
+    );
+
+    for (Tuple2<String, Boolean> example : shouldMatch) {
+      boolean actual = testMatch(patterns, example.l());
+      Assert.assertEquals(String.format("%s", example.l()), example.r(), actual);
+    }
+  }
+
 }

@@ -7,3 +7,4 @@ Git ignore patterns
 
 Online Java regex util
 - https://www.freeformatter.com/java-regex-tester.html#ad-output
+- https://www.regexplanet.com/advanced/java/index.html
