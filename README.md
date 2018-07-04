@@ -4,3 +4,6 @@ the silver searcher java clone
 
 Git ignore patterns
 - https://www.atlassian.com/git/tutorials/saving-changes/gitignore#git-ignore-patterns
+
+Online Java regex util
+- https://www.freeformatter.com/java-regex-tester.html#ad-output

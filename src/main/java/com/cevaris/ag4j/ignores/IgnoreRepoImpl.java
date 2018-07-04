@@ -43,7 +43,24 @@ public class IgnoreRepoImpl implements IgnoreRepo {
 
   @Override
   public boolean shouldIgnore(Path path) {
-    return false;
+    Set<String> patterns = Collections.emptySet();
+
+    // Look at parents for any ignores, break when we find first match.
+    Path currParent = path.getParent();
+    while (currParent != null && patterns.isEmpty()) {
+      if (ignoredPathMap.containsKey(currParent)) {
+        patterns = ignoredPathMap.get(currParent);
+      }
+      currParent = currParent.getParent();
+    }
+
+    // we may not find any patterns for whole absolute path.
+    // this can happen if file path does not fall within a repo.
+
+    boolean foundMatch = false;
+    for (String pattern : patterns) {
+    }
+    return foundMatch;
   }
 
   // visible for testing
