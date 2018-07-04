@@ -39,5 +39,10 @@ public class IgnoreUtils {
     return patterns;
   }
 
+  public static boolean shouldIgnore(Set<String> ignores, Path path) {
+    
+    return false;
+  }
+
 
 }
