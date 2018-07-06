@@ -9,8 +9,9 @@ public class Tuple2<L, R> {
     this.r = r;
   }
 
+  @SuppressWarnings("unchecked")
   public static <L, R> Tuple2 tuple(L l, R r) {
-    return new Tuple2(l, r);
+    return new Tuple2<L, R>(l, r);
   }
 
 

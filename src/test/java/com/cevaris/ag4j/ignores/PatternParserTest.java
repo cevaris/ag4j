@@ -1,5 +1,6 @@
 package com.cevaris.ag4j.ignores;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -15,44 +16,57 @@ public class PatternParserTest {
     boolean foundMatch = false;
     for (ParsedPattern pattern : patterns) {
       foundMatch |= pattern.isMatch(target);
-      continue;
     }
     return foundMatch;
+  }
+
+  private void testMatch(Set<ParsedPattern> patterns, List<String> shouldMatch, List<String> shouldNotMatch) {
+    for (String example : shouldMatch) {
+      boolean actual = testMatch(patterns, example);
+      Assert.assertTrue(String.format("%s", example), actual);
+    }
+    for (String example : shouldNotMatch) {
+      boolean actual = testMatch(patterns, example);
+      Assert.assertFalse(String.format("%s", example), actual);
+    }
   }
 
   @Test
   public void testSingleGlob() {
     PatternParser parser = new PatternParser();
     Set<ParsedPattern> patterns = parser.parse("*.log");
-    List<Tuple2<String, Boolean>> shouldMatch = Arrays.asList(
-        Tuple2.tuple("/debug.log", true),
-        Tuple2.tuple("/foo.log", true),
-        Tuple2.tuple("/logs/debug.log", false)
+
+    List<String> shouldMatch = Arrays.asList(
+        "/debug.log",
+        "/foo.log"
     );
 
-    for (Tuple2<String, Boolean> example : shouldMatch) {
-      boolean actual = testMatch(patterns, example.l());
-      Assert.assertEquals(String.format("%s", example.l()), example.r(), actual);
-    }
+    List<String> shouldNotMatch = Arrays.asList(
+        "/logs/debug.log",
+        "/logs/other.log"
+    );
+
+    testMatch(patterns, shouldMatch, shouldNotMatch);
   }
 
   @Test
   public void testDoubleGlob() {
     PatternParser parser = new PatternParser();
     Set<ParsedPattern> patterns = parser.parse("**/logs");
-    List<Tuple2<String, Boolean>> shouldMatch = Arrays.asList(
-        Tuple2.tuple("/logs/debug.log", true),
-        Tuple2.tuple("/logs/monday/foo.bar", true),
-        Tuple2.tuple("/build/logs/debug.log", true),
-        Tuple2.tuple("/build/logs", true),
-        Tuple2.tuple("/build/logs/", true),
-        Tuple2.tuple("/build/logs.txt", false)
+    List<String> shouldMatch = Arrays.asList(
+        "/logs/debug.log",
+        "/logs/monday/foo.bar",
+        "/build/logs/debug.log",
+        "/build/logs",
+        "/build/logs/"
     );
 
-    for (Tuple2<String, Boolean> example : shouldMatch) {
-      boolean actual = testMatch(patterns, example.l());
-      Assert.assertEquals(String.format("%s", example.l()), example.r(), actual);
-    }
+    List<String> shouldNotMatch = Arrays.asList(
+        "/build/logs.gzip",
+        "/build/logs.txt"
+    );
+
+    testMatch(patterns, shouldMatch, shouldNotMatch);
   }
 
 
@@ -60,16 +74,17 @@ public class PatternParserTest {
   public void testDoubleGlobFile() {
     PatternParser parser = new PatternParser();
     Set<ParsedPattern> patterns = parser.parse("**/logs/debug.log");
-    List<Tuple2<String, Boolean>> shouldMatch = Arrays.asList(
-        Tuple2.tuple("/logs/debug.log", true),
-        Tuple2.tuple("/build/logs/debug.log", true),
-        Tuple2.tuple("/logs/build/debug.log", false)
+    List<String> shouldMatch = Arrays.asList(
+        "/logs/debug.log",
+        "/build/logs/debug.log"
     );
 
-    for (Tuple2<String, Boolean> example : shouldMatch) {
-      boolean actual = testMatch(patterns, example.l());
-      Assert.assertEquals(String.format("%s", example.l()), example.r(), actual);
-    }
+    List<String> shouldNotMatch = Arrays.asList(
+        "/logs/build/debug.log",
+        "/logs/nested/build/debug.log"
+    );
+
+    testMatch(patterns, shouldMatch, shouldNotMatch);
   }
 
 }
