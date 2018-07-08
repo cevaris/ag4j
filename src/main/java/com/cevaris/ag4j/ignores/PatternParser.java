@@ -1,5 +1,6 @@
 package com.cevaris.ag4j.ignores;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -61,7 +62,7 @@ public class PatternParser {
       String minusGlobs = sanitizedPattern.substring(2);
       ParsedPattern p1 = new ParsedPattern(
           Pattern.compile(String.format("%s/", minusGlobs)),
-          sanitizedPattern,
+          rawPattern,
           isNegated
       );
       if (isNegated) {
@@ -72,7 +73,7 @@ public class PatternParser {
 
       ParsedPattern p2 = new ParsedPattern(
           Pattern.compile(String.format("%s/?$", minusGlobs)),
-          sanitizedPattern,
+          rawPattern,
           isNegated
       );
       if (isNegated) {
@@ -85,7 +86,7 @@ public class PatternParser {
       String minusGlobs = sanitizedPattern.substring(1);
       ParsedPattern p = new ParsedPattern(
           Pattern.compile(String.format("^/[^/]+%s", minusGlobs)),
-          sanitizedPattern,
+          rawPattern,
           isNegated
       );
       if (isNegated) {
@@ -94,9 +95,11 @@ public class PatternParser {
         addIgnored.accept(p);
       }
     } else {
+      String regex = sanitizedPattern.endsWith(File.separator) ?
+          String.format("%s?", sanitizedPattern) : sanitizedPattern;
       ParsedPattern p = new ParsedPattern(
-          Pattern.compile(sanitizedPattern),
-          sanitizedPattern,
+          Pattern.compile(regex),
+          rawPattern,
           isNegated
       );
       if (isNegated) {

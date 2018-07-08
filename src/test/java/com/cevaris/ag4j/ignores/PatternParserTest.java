@@ -14,7 +14,7 @@ public class PatternParserTest {
     boolean foundMatch = false;
     for (ParsedPattern pattern : patterns) {
       foundMatch |= pattern.isMatch(target);
-      continue;
+      continue; // used as debug breakpoint
     }
     return foundMatch;
   }
@@ -92,6 +92,24 @@ public class PatternParserTest {
     List<String> shouldNotMatch = Arrays.asList(
         "/logs/build/debug.log",
         "/logs/nested/build/debug.log"
+    );
+
+    testMatch(patterns.ignored(), shouldMatch, shouldNotMatch);
+  }
+
+  @Test
+  public void testSimple() {
+    PatternParser parser = new PatternParser();
+    PatternParser.Result patterns = parser.parse("aaa/");
+    List<String> shouldMatch = Arrays.asList(
+        "/aaa",
+        "/aaa/",
+        "/aaa/bbb",
+        "/bbb/aaa"
+    );
+
+    List<String> shouldNotMatch = Arrays.asList(
+        "/bbb"
     );
 
     testMatch(patterns.ignored(), shouldMatch, shouldNotMatch);

@@ -73,8 +73,9 @@ public class IgnoreRepoImpl implements IgnoreRepo {
     while (currParent != null && patterns.isEmpty()) {
       if (ignoredPathMap.containsKey(currParent)) {
         patterns = ignoredPathMap.get(currParent);
+      } else {
+        currParent = currParent.getParent();
       }
-      currParent = currParent.getParent();
     }
 
     // we may not find any patterns for whole absolute path.
@@ -90,13 +91,15 @@ public class IgnoreRepoImpl implements IgnoreRepo {
     boolean foundMatch = false;
     for (ParsedPattern pattern : patterns) {
       foundMatch |= pattern.isMatch(pathStr);
+      continue;
     }
 
     boolean foundNegMatch = false;
-    if(foundMatch && negatedPathMap.containsKey(currParent)){
+    if (foundMatch && negatedPathMap.containsKey(currParent)) {
       Set<ParsedPattern> negated = negatedPathMap.get(currParent);
       for (ParsedPattern pattern : negated) {
         foundNegMatch |= pattern.isMatch(pathStr);
+        continue;
       }
     }
 
