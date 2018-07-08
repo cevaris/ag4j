@@ -23,6 +23,7 @@ public class IgnoreRepoImpl implements IgnoreRepo {
    * - Any current level defined .*ignore patterns
    */
   private final Map<Path, Set<ParsedPattern>> ignoredPathMap = new HashMap<>();
+  private final Map<Path, Set<ParsedPattern>> negatedPathMap = new HashMap<>();
 
   @Override
   public void add(Path parent, List<String> patterns) {
@@ -33,6 +34,7 @@ public class IgnoreRepoImpl implements IgnoreRepo {
     }
 
     Set<ParsedPattern> collectedPatterns = new HashSet<>();
+    Set<ParsedPattern> collectedNegated = new HashSet<>();
 
     // TODO: should walk up to nearest .gitignore + parsed paths
     Iterator<Path> iter = parent.iterator();
@@ -48,13 +50,17 @@ public class IgnoreRepoImpl implements IgnoreRepo {
 
     // parse patterns and collect any non empty [[ParsedPatterns]]
     for (String pattern : patterns) {
-      Set<ParsedPattern> parsedPatterns = parser.parse(pattern);
-      if (!parsedPatterns.isEmpty()) {
-        collectedPatterns.addAll(parsedPatterns);
+      PatternParser.Result parsedPatterns = parser.parse(pattern);
+      if (!parsedPatterns.ignored().isEmpty()) {
+        collectedPatterns.addAll(parsedPatterns.ignored());
+      }
+      if (!parsedPatterns.negated().isEmpty()) {
+        collectedNegated.addAll(parsedPatterns.negated());
       }
     }
 
     ignoredPathMap.put(parent, collectedPatterns);
+    negatedPathMap.put(parent, collectedNegated);
     return; // used as debug breakpoint
   }
 
@@ -79,10 +85,22 @@ public class IgnoreRepoImpl implements IgnoreRepo {
       return false;
     }
 
+    String pathStr = path.toString();
+
     boolean foundMatch = false;
     for (ParsedPattern pattern : patterns) {
+      foundMatch |= pattern.isMatch(pathStr);
     }
-    return foundMatch;
+
+    boolean foundNegMatch = false;
+    if(foundMatch && negatedPathMap.containsKey(currParent)){
+      Set<ParsedPattern> negated = negatedPathMap.get(currParent);
+      for (ParsedPattern pattern : negated) {
+        foundNegMatch |= pattern.isMatch(pathStr);
+      }
+    }
+
+    return foundMatch && !foundNegMatch;
   }
 
   // visible for testing

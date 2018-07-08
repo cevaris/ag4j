@@ -5,9 +5,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ParsedPattern {
-  private final Pattern pattern;
-  private final String source;
-  private final boolean isNegated;
+  private final Pattern pattern; // final regex
+  private final String source; // git pattern
+  private final boolean isNegated; // if prefixed with !
 
   public ParsedPattern(Pattern pattern, String source, boolean isNegated) {
     this.pattern = pattern;

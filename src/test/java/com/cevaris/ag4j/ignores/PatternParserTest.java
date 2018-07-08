@@ -2,7 +2,6 @@ package com.cevaris.ag4j.ignores;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,17 +33,17 @@ public class PatternParserTest {
   @Test
   public void testEmptyPattern() {
     PatternParser parser = new PatternParser();
-    Assert.assertEquals(0, parser.parse("").size());
-    Assert.assertEquals(0, parser.parse("  ").size());
-    Assert.assertEquals(0, parser.parse(" \n ").size());
-    Assert.assertEquals(0, parser.parse(" \t ").size());
-    Assert.assertEquals(0, parser.parse(" \r ").size());
+    Assert.assertTrue(parser.parse("").isEmpty());
+    Assert.assertTrue(parser.parse("  ").isEmpty());
+    Assert.assertTrue(parser.parse(" \n ").isEmpty());
+    Assert.assertTrue(parser.parse(" \t ").isEmpty());
+    Assert.assertTrue(parser.parse(" \r ").isEmpty());
   }
 
   @Test
   public void testSingleGlob() {
     PatternParser parser = new PatternParser();
-    Set<ParsedPattern> patterns = parser.parse("*.log");
+    PatternParser.Result patterns = parser.parse("*.log");
 
     List<String> shouldMatch = Arrays.asList(
         "/debug.log",
@@ -57,13 +56,13 @@ public class PatternParserTest {
         "/build/logs/debug.log"
     );
 
-    testMatch(patterns, shouldMatch, shouldNotMatch);
+    testMatch(patterns.ignored(), shouldMatch, shouldNotMatch);
   }
 
   @Test
   public void testDoubleGlob() {
     PatternParser parser = new PatternParser();
-    Set<ParsedPattern> patterns = parser.parse("**/logs");
+    PatternParser.Result patterns = parser.parse("**/logs");
     List<String> shouldMatch = Arrays.asList(
         "/logs/debug.log",
         "/logs/monday/foo.bar",
@@ -77,14 +76,14 @@ public class PatternParserTest {
         "/build/logs.txt"
     );
 
-    testMatch(patterns, shouldMatch, shouldNotMatch);
+    testMatch(patterns.ignored(), shouldMatch, shouldNotMatch);
   }
 
 
   @Test
   public void testDoubleGlobFile() {
     PatternParser parser = new PatternParser();
-    Set<ParsedPattern> patterns = parser.parse("**/logs/debug.log");
+    PatternParser.Result patterns = parser.parse("**/logs/debug.log");
     List<String> shouldMatch = Arrays.asList(
         "/logs/debug.log",
         "/build/logs/debug.log"
@@ -95,7 +94,7 @@ public class PatternParserTest {
         "/logs/nested/build/debug.log"
     );
 
-    testMatch(patterns, shouldMatch, shouldNotMatch);
+    testMatch(patterns.ignored(), shouldMatch, shouldNotMatch);
   }
 
 
@@ -103,9 +102,7 @@ public class PatternParserTest {
   public void testNegation() {
     PatternParser parser = new PatternParser();
 
-    Set<ParsedPattern> patterns = new HashSet<>();
-    patterns.addAll(parser.parse("!important.log"));
-
+    PatternParser.Result patterns = parser.parse("!important.log");
     List<String> shouldMatch = Arrays.asList(
         "/important.log",
         "/logs/important.log"
@@ -114,10 +111,13 @@ public class PatternParserTest {
 
     List<String> shouldNotMatch = Collections.emptyList();
 
-    testMatch(patterns, shouldMatch, shouldNotMatch);
+    testMatch(patterns.negated(), shouldMatch, shouldNotMatch);
 
-    Assert.assertEquals(1, patterns.size());
-    Assert.assertEquals(true, patterns.stream().findFirst().get().isNegated());
+    Assert.assertEquals(1, patterns.negated().size());
+    Assert.assertFalse(patterns.negated().isEmpty());
+    Assert.assertTrue(patterns.negated().stream().findFirst().get().isNegated());
+
+    Assert.assertTrue(patterns.ignored().isEmpty());
   }
 
 }
