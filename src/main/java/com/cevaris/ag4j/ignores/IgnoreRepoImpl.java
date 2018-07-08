@@ -1,7 +1,6 @@
 package com.cevaris.ag4j.ignores;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,7 +12,17 @@ import java.util.Set;
 import com.cevaris.ag4j.Constants;
 
 public class IgnoreRepoImpl implements IgnoreRepo {
-  private final Map<Path, Set<String>> ignoredPathMap = new HashMap<>();
+  /**
+   * Thread safe ignore pattern -> java regex parser
+   */
+  private final PatternParser parser = new PatternParser();
+  /**
+   * One entry for every .*ignore file there is in search path.
+   * The value is set of parsed patterns which includes both
+   * - Any parent defined .*ignore patterns
+   * - Any current level defined .*ignore patterns
+   */
+  private final Map<Path, Set<ParsedPattern>> ignoredPathMap = new HashMap<>();
 
   @Override
   public void add(Path parent, List<String> patterns) {
@@ -23,27 +32,35 @@ public class IgnoreRepoImpl implements IgnoreRepo {
       return;
     }
 
-    List<String> parentPatterns = new ArrayList<>();
+    Set<ParsedPattern> collectedPatterns = new HashSet<>();
 
+    // TODO: should walk up to nearest .gitignore + parsed paths
     Iterator<Path> iter = parent.iterator();
     Path curr = Constants.ROOT_PATH; // initialize with rootPath
     while (iter.hasNext()) {
       curr = curr.resolve(iter.next());
-      Set<String> candidatePatterns = ignoredPathMap.get(curr);
+
+      Set<ParsedPattern> candidatePatterns = ignoredPathMap.get(curr);
       if (candidatePatterns != null) {
-        parentPatterns.addAll(candidatePatterns);
+        collectedPatterns.addAll(candidatePatterns);
       }
     }
 
-    // add current dir patterns
-    patterns.addAll(parentPatterns);
-    ignoredPathMap.put(parent, new HashSet<>(patterns));
-    return;
+    // parse patterns and collect any non empty [[ParsedPatterns]]
+    for (String pattern : patterns) {
+      Set<ParsedPattern> parsedPatterns = parser.parse(pattern);
+      if (!parsedPatterns.isEmpty()) {
+        collectedPatterns.addAll(parsedPatterns);
+      }
+    }
+
+    ignoredPathMap.put(parent, collectedPatterns);
+    return; // used as debug breakpoint
   }
 
   @Override
   public boolean shouldIgnore(Path path) {
-    Set<String> patterns = Collections.emptySet();
+    Set<ParsedPattern> patterns = Collections.emptySet();
 
     // Look at parents for any ignores, break when we find first match.
     Path currParent = path.getParent();
@@ -57,14 +74,19 @@ public class IgnoreRepoImpl implements IgnoreRepo {
     // we may not find any patterns for whole absolute path.
     // this can happen if file path does not fall within a repo.
 
+    if (patterns.isEmpty()) {
+      // no pattern, no ignoring/filtering
+      return false;
+    }
+
     boolean foundMatch = false;
-    for (String pattern : patterns) {
+    for (ParsedPattern pattern : patterns) {
     }
     return foundMatch;
   }
 
   // visible for testing
-  Set<String> getPatterns(Path path) {
+  Set<ParsedPattern> getPatterns(Path path) {
     return Collections.unmodifiableSet(ignoredPathMap.get(path));
   }
 }

@@ -6,36 +6,60 @@ import java.util.regex.Pattern;
 
 public class PatternParser {
   public Set<ParsedPattern> parse(String rawPattern) {
-    Set<ParsedPattern> results = new HashSet<>();
+    final Set<ParsedPattern> results = new HashSet<>();
+    boolean isNegated = false;
 
-    rawPattern = rawPattern
+    String sanitizedPattern = rawPattern
         .trim()
         .replace(".", "\\.");
 
-    if (rawPattern.startsWith("#")) {
+    // ignore empty lines
+    if (sanitizedPattern.isEmpty()) {
       return results;
     }
 
-    if (rawPattern.startsWith("**")) {
-      String minusGlobs = rawPattern.substring(2);
+    // ignore commented lines
+    if (sanitizedPattern.startsWith("#")) {
+      return results;
+    }
+
+    // mark negated pattern
+    if (sanitizedPattern.startsWith("!")) {
+      isNegated = true;
+      sanitizedPattern = sanitizedPattern.substring(1);
+    }
+
+    if (sanitizedPattern.startsWith("**")) {
+      String minusGlobs = sanitizedPattern.substring(2);
       results.add(
           new ParsedPattern(
               Pattern.compile(String.format("%s/", minusGlobs)),
-              rawPattern
+              sanitizedPattern,
+              isNegated
           )
       );
       results.add(
           new ParsedPattern(
               Pattern.compile(String.format("%s/?$", minusGlobs)),
-              rawPattern
+              sanitizedPattern,
+              isNegated
           )
       );
-    } else if (rawPattern.startsWith("*")) {
-      String minusGlobs = rawPattern.substring(1);
+    } else if (sanitizedPattern.startsWith("*")) {
+      String minusGlobs = sanitizedPattern.substring(1);
       results.add(
           new ParsedPattern(
               Pattern.compile(String.format("^/[^/]+%s", minusGlobs)),
-              rawPattern
+              sanitizedPattern,
+              isNegated
+          )
+      );
+    } else {
+      results.add(
+          new ParsedPattern(
+              Pattern.compile(sanitizedPattern),
+              sanitizedPattern,
+              isNegated
           )
       );
     }

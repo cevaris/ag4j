@@ -10,6 +10,7 @@ public class Constants {
 
   public static final Set<String> IGNORE_PATH_NAMES = new HashSet<>();
 
+  // TODO: check $GIT_DIR/info/exclude for patterns
 
   static {
     SKIP_PATH_NAMES.add(".git");

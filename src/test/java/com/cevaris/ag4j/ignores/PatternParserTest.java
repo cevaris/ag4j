@@ -1,11 +1,10 @@
 package com.cevaris.ag4j.ignores;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.cevaris.ag4j.common.Tuple2;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,6 +15,7 @@ public class PatternParserTest {
     boolean foundMatch = false;
     for (ParsedPattern pattern : patterns) {
       foundMatch |= pattern.isMatch(target);
+      continue;
     }
     return foundMatch;
   }
@@ -32,6 +32,16 @@ public class PatternParserTest {
   }
 
   @Test
+  public void testEmptyPattern() {
+    PatternParser parser = new PatternParser();
+    Assert.assertEquals(0, parser.parse("").size());
+    Assert.assertEquals(0, parser.parse("  ").size());
+    Assert.assertEquals(0, parser.parse(" \n ").size());
+    Assert.assertEquals(0, parser.parse(" \t ").size());
+    Assert.assertEquals(0, parser.parse(" \r ").size());
+  }
+
+  @Test
   public void testSingleGlob() {
     PatternParser parser = new PatternParser();
     Set<ParsedPattern> patterns = parser.parse("*.log");
@@ -43,7 +53,8 @@ public class PatternParserTest {
 
     List<String> shouldNotMatch = Arrays.asList(
         "/logs/debug.log",
-        "/logs/other.log"
+        "/logs/other.log",
+        "/build/logs/debug.log"
     );
 
     testMatch(patterns, shouldMatch, shouldNotMatch);
@@ -85,6 +96,28 @@ public class PatternParserTest {
     );
 
     testMatch(patterns, shouldMatch, shouldNotMatch);
+  }
+
+
+  @Test
+  public void testNegation() {
+    PatternParser parser = new PatternParser();
+
+    Set<ParsedPattern> patterns = new HashSet<>();
+    patterns.addAll(parser.parse("!important.log"));
+
+    List<String> shouldMatch = Arrays.asList(
+        "/important.log",
+        "/logs/important.log"
+
+    );
+
+    List<String> shouldNotMatch = Collections.emptyList();
+
+    testMatch(patterns, shouldMatch, shouldNotMatch);
+
+    Assert.assertEquals(1, patterns.size());
+    Assert.assertEquals(true, patterns.stream().findFirst().get().isNegated());
   }
 
 }

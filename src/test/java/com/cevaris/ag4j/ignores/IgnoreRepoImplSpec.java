@@ -5,7 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static com.cevaris.ag4j.common.TestUtils.path;
@@ -34,14 +39,16 @@ public class IgnoreRepoImplSpec {
     }};
     ignoreRepo.add(childPath, childPatterns);
 
+
     Path siblingPath = path("sibling");
     List<String> siblingPatterns = new ArrayList<String>() {{
       add("ignore4");
     }};
     ignoreRepo.add(siblingPath, siblingPatterns);
 
-    assertEquals(sorted(ignoreRepo.getPatterns(testPath)), sorted(Arrays.asList("ignore1", "ignore2")));
-    assertEquals(sorted(ignoreRepo.getPatterns(childPath)), sorted(Arrays.asList("ignore1", "ignore2", "ignore3")));
-    assertEquals(sorted(ignoreRepo.getPatterns(siblingPath)), sorted(Collections.singletonList("ignore4")));
+
+    assertEquals(sorted(Arrays.asList("ignore1", "ignore2")), ignoreRepo.getPatterns(testPath).stream().map(ParsedPattern::getSource).sorted().collect(Collectors.toList()));
+    assertEquals(sorted(Arrays.asList("ignore1", "ignore2", "ignore3")), ignoreRepo.getPatterns(childPath).stream().map(ParsedPattern::getSource).sorted().collect(Collectors.toList()));
+    assertEquals(sorted(Collections.singletonList("ignore4")), ignoreRepo.getPatterns(siblingPath).stream().map(ParsedPattern::getSource).sorted().collect(Collectors.toList()));
   }
 }
